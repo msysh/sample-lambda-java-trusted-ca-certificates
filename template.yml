@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Check Java Trusted CA Certificates
+Globals:
+  Function:
+    Timeout: 10
+Resources:
+  MyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: JavaTrustedCaCertificates
+      Handler: example.lambda.App::handleRequest
+      CodeUri: ./
+      Runtime: java8.al2
+      MemorySize: 512
+      Role: !GetAtt MyFunctionRole.Arn
+      Environment: 
+        Variables:
+          AWS_CBOR_DISABLE: true
+
+  MyLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${MyFunction}
+
+  MyFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action: sts:AssumeRole
+          Principal:
+            Service: lambda.amazonaws.com
+      Policies:
+      -
+        PolicyName: policy
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          -
+            Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: '*'
